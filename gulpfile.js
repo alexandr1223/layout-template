@@ -51,7 +51,7 @@ function scripts() {
 
 
 function styles() {
-  return src('app/scss/style.sass')
+  return src('app/sass/style.sass')
       .pipe(scss({outputStyle: 'compressed'}))
       .pipe(concat('style.min.css'))
       .pipe(autoprefixer({
