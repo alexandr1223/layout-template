@@ -1,6 +1,8 @@
 html,
 body 
 	height: 100%
+	background: #E0E9F9
+	font-family: "ClinicaMedium"
 
 .wrapper 
 	display: flex
@@ -8,18 +10,27 @@ body
 	min-height: 100%
 
 .main 
+	word-wrap: break-word
 	flex: 1 0 auto
 
 .footer 
 	flex: 0 0 auto
 
 .container
-  max-width: 1200px
+  max-width: 1240px
   margin: 0 auto
   padding: 0 15px
 
+.title
+	word-wrap: break-word
 
+.subtitle
+	word-wrap: break-word
 
-
-
-
+input
+	cursor: pointer
+	&::placeholder,
+	&::-webkit-input-placeholder,
+	&::-moz-placeholder,
+	&::-ms-input-placeholder,
+		color: #fff
