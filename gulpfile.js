@@ -49,6 +49,12 @@ function styles() {
       .pipe(browserSync.stream())
 }
 
+function scripts() {
+  return src('app/js/main.js')
+      .pipe(dest('app/js'))
+      .pipe(browserSync.stream())
+}
+
 function build() {
   return src([
     'app/css/style.min.css',
@@ -61,10 +67,12 @@ function build() {
 
 function watching() {
   watch(['app/sass/**/*.sass'], styles);
+  watch(['app/js/*.js']).on('change', browserSync.reload);
   watch(['app/*.html']).on('change', browserSync.reload);
 }
 
 exports.styles = styles;
+exports.scripts = scripts;
 exports.watching = watching;
 exports.browsersync = browsersync;
 exports.images = images;
@@ -72,6 +80,6 @@ exports.cleanDist = cleanDist;
 
 
 exports.build = series(cleanDist, images, build);
-exports.default = parallel(styles,browsersync, watching);
+exports.default = parallel(styles, scripts, browsersync, watching);
 
 
