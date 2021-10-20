@@ -16,18 +16,5 @@ document.addEventListener("DOMContentLoaded", function(event) {
         $img.replaceWith($svg);
         }, 'xml');
     }); 
-
-    function menu(menuBtn, block, close) {
-        if (document.querySelector(menuBtn)) {
-            document.querySelector(menuBtn).addEventListener('click', () => {
-                document.querySelector(block).style.cssText = 'left: 0';
-                document.body.style.overflow = "hidden"
-            })
-            document.querySelector(close).addEventListener('click', () => {
-                document.body.style.overflow = "auto"
-                document.querySelector(block).style.cssText = 'left: -100%';
-            })
-        }
-    } 
-    // menu('', '', '');
+    
 });
