@@ -1,92 +1,132 @@
-const { src, dest, watch, parallel}  = require('gulp');
+const { src, dest, watch, parallel }  = require('gulp');
 
 const 
+  gulp          = require('gulp'),
   sass          = require('gulp-sass')(require('sass')),
   concat        = require('gulp-concat'),
   uglify        = require('gulp-uglify'),
   imagemin      = require('gulp-imagemin'),
-  pngquant      = require('gulp-pngquant'),
+  pngquant      = require('imagemin-pngquant'),
+  recompress    = require('imagemin-jpeg-recompress'),
   del           = require('del'),
   browserSync   = require('browser-sync').create(),
   autoprefixer  = require('gulp-autoprefixer'),
   plumber       = require('gulp-plumber'),
-  rigger        = require('gulp-rigger');
+  notify        = require("gulp-notify"),
+  rigger        = require('gulp-rigger'),
+  cleanCSS      = require('gulp-clean-css');
 
+var path = {
+  dist: { // Путь для файлов при сборке
+      html: 'dist/',
+      js: 'dist/js/',
+      css: 'dist/css/',
+      img: 'dist/img/',
+      fonts: 'dist/fonts/'
+  },
+  src: { // Пути исходников
+      html: 'src/*.html',
+      js: 'src/js/**/*.js',
+      scss: 'src/scss/*.scss',
+      img: 'src/img/**/**/*.{jpg,png,svg,gif,ico}',
+      fonts: 'src/fonts/**/*.*'
+  },
+  watch: { // Пути для наблюдения за изменениями файлов
+      html: 'src/**/*.html',
+      js: 'src/js/**/*.js',
+      scss: 'src/scss/**/*.scss',
+      img: 'src/img/**/**/*.{jpg,png,svg,gif,ico}',
+      fonts: 'src/fonts/**/*.*'
+  },
+  clean: './dist'
+};
 
 
 function browsersync() {
   browserSync.init({
     server : {
       baseDir: 'dist/'
-    },
+    }
   });
 }
 
 /* ========= "HTML" ========== */
 function html() {
-  return src('src/*.html')
-      .pipe(plumber())
-      .pipe(rigger()) 
-      .pipe(dest('dist/'))
-      .pipe(browserSync.stream())
-}
-
-/* ========= "SASS" ========== */
-function styles() {
-  return src('src/sass/style.sass')
-      .pipe(plumber())
-      .pipe(sass({outputStyle: 'compressed'}))
-      .pipe(concat('style.min.css'))
-      .pipe(autoprefixer({
-        overrideBrowserslist: ['last 10 version', '>1%', 'ie 8', 'ie 7'],
-      }))
-      .pipe(dest('dist/css'))
-      .pipe(browserSync.stream())
+  return src(path.src.html)
+  .pipe(plumber({errorHandler: notify.onError("Error: <%= error.message %>")}))
+    .pipe(rigger())
+    .pipe(dest(path.dist.html))
+    .pipe(browserSync.stream())
 }
 
 /* ========= "JS" ========== */
 function scripts() {
-  return src('src/js/**/*.js')
-      .pipe(plumber())
-      .pipe(concat('main.min.js'))
-      .pipe(uglify())
-      .pipe(dest('dist/js'))
-      .pipe(browserSync.stream())
+  return src(path.src.js)
+    .pipe(plumber({errorHandler: notify.onError("Error: <%= error.message %>")}))
+    .pipe(concat('main.min.js'))
+    .pipe(uglify())
+    .pipe(dest(path.dist.js))
+    .pipe(browserSync.stream())
+}
+
+/* ========= "SCSS" ========== */
+function styles() {
+  return src(path.src.scss)
+    .pipe(plumber({errorHandler: notify.onError("Error: <%= error.message %>")}))
+    .pipe(sass({outputStyle: 'expanded'}))
+    .pipe(autoprefixer({
+      overrideBrowserslist: ['last 10 version', '>1%', 'ie 8', 'ie 7'],
+    }))
+    .pipe(cleanCSS({compatibility: 'ie8'}))
+    .pipe(concat('style.min.css'))
+    .pipe(dest(path.dist.css))
+    .pipe(browserSync.stream())
 }
 
 /* ========== "IMG" ========== */
 function images() {
-  return src('src/img/**/*.{jpg,png,svg,gif,ico}')
-      .pipe(plumber())
-      .pipe(imagemin({
-        interlaced: true,
+  return src(path.src.img)
+    .pipe(plumber({errorHandler: notify.onError("Error: <%= error.message %>")}))
+    .pipe(imagemin([
+      recompress({
         progressive: true,
-        svgoPlugins: [{removeViewBox: false}],
-        use: [pngquant()]
-      }))
-      .pipe(dest('dist/img'))
-      .pipe(browserSync.stream());
+        min: 70, max: 90
+      }),
+      pngquant({
+        speed: 5,
+        quality: [0.9, 1]
+      }),
+      imagemin.svgo({
+        plugins: [
+          { removeViewBox: false },
+        ]
+      }),
+      imagemin.gifsicle(),
+      imagemin.optipng()
+    ]))
+    .pipe(dest(path.dist.img))
+    .pipe(browserSync.stream());
 }
 
 /* ========== "FONTS" ========== */
 function fonts() {
-  return src('src/fonts/**/*')
-    .pipe(dest('dist/fonts'))
-    .pipe(browserSync.stream())
+  return src(path.src.fonts)
+    .pipe(dest(path.dist.fonts))
+    .pipe(browserSync.stream());
 }
 
 /* ========= "CLEAN" ========= */
 function clean() {
-  return del.sync('dist')
+  return del.sync(path.clean);
 }
 
 /* ========= "WATCH" ========= */
 function watching() {
-  watch(['src/*.html']).on('change', html);
-  watch(['src/sass/**/*.sass'], styles);
-  watch(['src/js/*.js']).on('change', scripts);
-  watch(['src/img/*']).on('change', images);
-  watch(['src/fonts/*']).on('change', fonts);
+  watch([path.watch.html], html);
+  watch([path.watch.scss], styles);
+  watch([path.watch.js], scripts);
+  watch([path.watch.img], images);
+  watch([path.watch.fonts], fonts);
 }
 
 
@@ -101,5 +141,3 @@ exports.browsersync = browsersync;
 
 exports.build = parallel(html, styles, scripts, images, fonts);
 exports.default = parallel(clean, html, styles, scripts, images, fonts, browsersync, watching);
-
-
