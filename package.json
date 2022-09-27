@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.html",
   "scripts": {
-    "gulp": "gulp"
+    "start": "gulp",
+    "build": "gulp build"
   },
   "author": "pohrebniak23",
   "license": "ISC",
